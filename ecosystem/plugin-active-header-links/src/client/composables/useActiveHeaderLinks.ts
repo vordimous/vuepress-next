@@ -2,20 +2,11 @@ import { debounce } from 'ts-debounce'
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Router } from 'vue-router'
+import { useActiveHeaderLinksOptions } from './useActiveHeaderLinksOptions.js'
 
-export interface UseActiveHeaderLinksOptions {
-  headerLinkSelector: string
-  headerAnchorSelector: string
-  delay: number
-  offset?: number
-}
-
-export const useActiveHeaderLinks = ({
-  headerLinkSelector,
-  headerAnchorSelector,
-  delay,
-  offset = 5,
-}: UseActiveHeaderLinksOptions): void => {
+export const useActiveHeaderLinks = (): void => {
+  const { delay, headerAnchorSelector, headerLinkSelector, offset } =
+    useActiveHeaderLinksOptions()
   const router = useRouter()
 
   const setActiveRouteHash = (): void => {
