@@ -1,5 +1,5 @@
 import { isArray } from '@vuepress/shared'
-import type { DocsearchOptions } from '../../shared/index.js'
+import type { DocsearchOptions } from '../types.js'
 
 type FacetFilters =
   Required<DocsearchOptions>['searchParameters']['facetFilters']

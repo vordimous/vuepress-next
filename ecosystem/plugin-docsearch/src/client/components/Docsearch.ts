@@ -8,11 +8,12 @@ import {
   ref,
   watch,
 } from 'vue'
-import type { DocsearchOptions } from '../../shared/index.js'
 import {
   useDocsearchHotkeyListener,
+  useDocsearchOptions,
   useDocsearchShim,
 } from '../composables/index.js'
+import type { DocsearchOptions } from '../types.js'
 import {
   getFacetFilters,
   getSearchButtonTemplate,
@@ -21,9 +22,6 @@ import {
 } from '../utils/index.js'
 
 declare const __DOCSEARCH_INJECT_STYLES__: boolean
-declare const __DOCSEARCH_OPTIONS__: DocsearchOptions
-
-const optionsDefault = __DOCSEARCH_OPTIONS__
 
 if (__DOCSEARCH_INJECT_STYLES__) {
   import('@docsearch/css')
@@ -42,7 +40,7 @@ export const Docsearch = defineComponent({
     options: {
       type: Object as PropType<DocsearchOptions>,
       required: false,
-      default: () => optionsDefault,
+      default: () => ({}),
     },
   },
 
@@ -50,13 +48,14 @@ export const Docsearch = defineComponent({
     const docsearchShim = useDocsearchShim()
     const lang = usePageLang()
     const routeLocale = useRouteLocale()
-
+    const docsearchOptions = useDocsearchOptions()
     const hasInitialized = ref(false)
     const hasTriggered = ref(false)
 
     // resolve docsearch options for current locale
     const options = computed(() => ({
       ...props.options,
+      ...docsearchOptions,
       ...props.options.locales?.[routeLocale.value],
     }))
 
