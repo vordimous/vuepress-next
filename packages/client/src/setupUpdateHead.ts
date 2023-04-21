@@ -1,4 +1,8 @@
-import { isPlainObject, isString } from '@vuepress/shared'
+import {
+  isPlainObject,
+  isString,
+  resolveHeadIdentifier,
+} from '@vuepress/shared'
 import type { HeadConfig, VuepressSSRContext } from '@vuepress/shared'
 import { onMounted, provide, ref, useSSRContext, watch } from 'vue'
 import {
@@ -7,6 +11,12 @@ import {
   usePageLang,
 } from './composables/index.js'
 import type { UpdateHead } from './composables/index.js'
+
+interface HeadTagInfo {
+  el: HTMLElement
+  id: string
+  info: HeadConfig
+}
 
 /**
  * Auto update head and provide as global util
@@ -25,34 +35,55 @@ export const setupUpdateHead = (): void => {
     return
   }
 
-  const headTags = ref<HTMLElement[]>([])
+  const headInfos = ref<HeadTagInfo[]>([])
 
   // load current head tags from DOM
   const loadHead = (): void => {
     head.value.forEach((item) => {
       const tag = queryHeadTag(item)
+
       if (tag) {
-        headTags.value.push(tag)
+        headInfos.value.push({
+          el: tag,
+          id: resolveHeadIdentifier(item)!,
+          info: item,
+        })
       }
     })
   }
 
   // update html lang attribute and head tags to DOM
   const updateHead: UpdateHead = () => {
-    document.documentElement.lang = lang.value
+    const oldHeadInfos = headInfos.value
+    const newHeadTagsConfig = head.value
 
-    headTags.value.forEach((item) => {
-      if (item.parentNode === document.head) {
-        document.head.removeChild(item)
+    // update lang
+    if (document.documentElement.lang !== lang.value)
+      document.documentElement.lang = lang.value
+
+    oldHeadInfos.forEach(({ el, info, id: oldId }) => {
+      const existingHeadIndex = newHeadTagsConfig.findIndex(
+        (item) => resolveHeadIdentifier(item) === oldId
+      )
+
+      // remove the tag in new tags to preserve it
+      if (existingHeadIndex !== -1) {
+        newHeadTagsConfig.splice(existingHeadIndex, 1)
+      }
+      // remove old head tags
+      else {
+        document.head.removeChild(el)
       }
     })
-    headTags.value.splice(0, headTags.value.length)
 
-    head.value.forEach((item) => {
-      const tag = createHeadTag(item)
-      if (tag !== null) {
-        document.head.appendChild(tag)
-        headTags.value.push(tag)
+    // append new head tags
+    newHeadTagsConfig.forEach((head) => {
+      const el = createHeadTag(head)
+      const id = resolveHeadIdentifier(head)!
+
+      if (el) {
+        document.head.appendChild(el)
+        headInfos.value.push({ el, id, info: head })
       }
     })
   }
