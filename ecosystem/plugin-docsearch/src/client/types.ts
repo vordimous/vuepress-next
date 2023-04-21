@@ -14,5 +14,10 @@ export type DocsearchLocaleData = Pick<
 >
 
 export interface DocsearchOptions extends DocsearchLocaleData {
+  /**
+   * Base path of the search index
+   */
+  indexBase?: string
+
   locales?: LocaleConfig<DocsearchLocaleData>
 }

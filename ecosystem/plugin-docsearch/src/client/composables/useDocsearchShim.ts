@@ -2,8 +2,7 @@ import type { DocSearchProps } from '@docsearch/react'
 import { resolveRoutePathFromUrl } from '@vuepress/shared'
 import { debounce } from 'ts-debounce'
 import { useRouter } from 'vue-router'
-
-declare const __DOCSEARCH_INDEX_BASE__: string
+import { useDocsearchOptions } from './useDocsearchOptions.js'
 
 const isSpecialClick = (event: MouseEvent): boolean =>
   event.button === 1 ||
@@ -16,6 +15,7 @@ const isSpecialClick = (event: MouseEvent): boolean =>
  * Get docsearch options to be compatible with VuePress
  */
 export const useDocsearchShim = (): Partial<DocSearchProps> => {
+  const docsearchOptions = useDocsearchOptions()
   const router = useRouter()
 
   return {
@@ -35,7 +35,10 @@ export const useDocsearchShim = (): Partial<DocSearchProps> => {
             }
             event.preventDefault()
             router.push(
-              resolveRoutePathFromUrl(hit.url, __DOCSEARCH_INDEX_BASE__)
+              resolveRoutePathFromUrl(
+                hit.url,
+                docsearchOptions.indexBase || __VUEPRESS_BASE__
+              )
             )
           },
           children,
@@ -47,7 +50,12 @@ export const useDocsearchShim = (): Partial<DocSearchProps> => {
     navigator: {
       // when pressing Enter without metaKey
       navigate: ({ itemUrl }) => {
-        router.push(resolveRoutePathFromUrl(itemUrl, __DOCSEARCH_INDEX_BASE__))
+        router.push(
+          resolveRoutePathFromUrl(
+            itemUrl,
+            docsearchOptions.indexBase || __VUEPRESS_BASE__
+          )
+        )
       },
     },
 
